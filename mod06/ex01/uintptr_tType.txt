@@ -1,0 +1,23 @@
+uintptr_t est un type permetant de stocké l'adress mémoire d'un variable, soit comme un pointeur mais en form int.
+Le pointeur lui le stock en hexadecimal.
+
+Adresse en pointeur : 0x7ffee2b3d8ac -> pointeur
+Adresse en entier   : 140732774936492 -> adress via uintptr_t
+
+Utilité :
+	C'est donc bien plus pratique de décaler l'adress car ici une unité vaut un octet.
+	Alors que si le pointeur pointe sur un int, on va avancer de +4 octet (taille de int) a chaque +1
+	double -> 8octet
+	char -> 1 octet
+	...
+	Le pointeur, quand on fait ++, avance de la taille de l'object qui pointe
+	Le type uintptr_t avance de 1 octet peut importe l'object pointé
+
+
+	Casting 
+
+	static_cast : casté des types compatibles (int, char, float, ...)
+	reinterpret_cast : Sert à faire une conversion « bit-à-bit », sans toucher aux bits. (int*, uintptr_t, float*,...)
+	dynamic_cast : ne fonctionne que sur des pointeurs ou références vers des types polymorphes (c’est-à-dire des classes avec au moins une fonction virtuelle). Si on le cast vers un mauvais obj, il renvoie nullptr
+		Base* b = new A();
+		A* a = dynamic_cast<A*>(b); // ✅ renvoie nullptr si b n'est pas un A
