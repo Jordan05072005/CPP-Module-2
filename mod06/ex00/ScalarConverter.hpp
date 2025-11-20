@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include <limits>
 
 class ScalarConverter{
 	private:

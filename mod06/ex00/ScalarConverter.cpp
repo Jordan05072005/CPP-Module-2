@@ -17,7 +17,7 @@ static void	convChar(float i){
 }
 
 static void	convInt(float i){
-	if (i < -2147483648 || i > 2147483647)
+	if (i < std::numeric_limits<int>::min() || i > std::numeric_limits<int>::max())
 		std::cout << "Convert in int is impossible" << std::endl;
 	else
 		std::cout << "int : " << static_cast<int>(i)  << std::endl;
@@ -92,8 +92,8 @@ void ScalarConverter::convert(std::string const &s){
 	}
 	err = pseudoLitt(s);
 	if (err != 0){
-		convChar(-2147483649);
-		convInt(-21474836497777);
+		std::cout << "Convert in int is impossible" << std::endl;
+		std::cout << "Convert in char is impossible" << std::endl;
 		if (err == 1){
 			std::cout << "float : " << s << std::endl;
 			std::cout << "double : " << s.substr(0, s.size() - 1) << std::endl;
