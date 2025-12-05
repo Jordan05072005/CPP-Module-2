@@ -13,6 +13,8 @@ BitcoinExchange::BitcoinExchange(const BitcoinExchange &other){
 BitcoinExchange& BitcoinExchange::operator=(const BitcoinExchange &other){
 	if (this != &other){
 		this->_data = other._data;
+		this->_input = other._input;
+		this->_bufData = other._bufData;
 	}
 	return (*this);
 }
@@ -35,12 +37,12 @@ std::string& BitcoinExchange::getData(){
 	return(this->_data);
 }
 
-static std::string trim(const std::string &s, const std::string& sep) {
-    size_t start = s.find_first_not_of(sep);
-    size_t end   = s.find_last_not_of(sep);
-    if (start == std::string::npos) return "";
-    return s.substr(start, end - start + 1);
-}
+// static std::string trim(const std::string &s, const std::string& sep) {
+//     size_t start = s.find_first_not_of(sep);
+//     size_t end   = s.find_last_not_of(sep);
+//     if (start == std::string::npos) return "";
+//     return s.substr(start, end - start + 1);
+// }
 
 static float conv(std::string s1){
 	std::stringstream t(s1);
@@ -51,7 +53,7 @@ static float conv(std::string s1){
 }
 
 
-void	fill(std::list<std::string> &s, std::ifstream &fd, char sep){
+void	fill(std::map<std::string, float> &s, std::ifstream &fd, std::string sep){
 	std::string temp;
 	std::string temp2;
 	size_t size;
@@ -60,15 +62,12 @@ void	fill(std::list<std::string> &s, std::ifstream &fd, char sep){
 		if (temp.find("date") != std::string::npos)
 			continue;
 		else if (size == std::string::npos){
-			s.push_back(trim(temp, " \t\r\n"));
-			s.push_back("");
 			continue;
 		}
 		else{
 			temp2 = temp.substr(0, size);
 			temp = temp.substr(size + 1);
-			s.push_back(trim(temp2, " \t\r\n"));
-			s.push_back(trim(temp, " \t\r\n"));
+			s[temp2] = conv(temp);
 		}
 	}
 }
@@ -105,7 +104,7 @@ static int checkDay(int a, float m, float j){
 	return (1);
 }
 
-static int	checkerror(std::string &l1, std::string &l2){
+static int	checkerror(std::string l1, std::string l2){
 	float	nb;
 	int pos;
 	int arr[4];
@@ -141,32 +140,50 @@ static int	checkerror(std::string &l1, std::string &l2){
 void BitcoinExchange::BitcoinExchangeRate(){
 	std::ifstream fdD(this->_data.c_str());
 	std::ifstream fdI(this->_input.c_str());
-	std::list<std::string>::iterator temp;
-	std::list<std::string>::iterator temp2;
+	size_t size;
 	std::string str;
+	std::string line1;
+	std::string line2;
+	std::map<std::string, float>::iterator tmp;
+	std::map<std::string, float>::iterator tmp2;
+	int	i = 0;
 
 	if (!fdD.is_open() || !fdI.is_open())
 		throw FileNotFound();
-	fill(this->_bufData, fdD, ',');
-	fill(this->_bufInput, fdI, '|');
-	for (std::list<std::string>::iterator it = this->_bufInput.begin(); it != this->_bufInput.end(); std::advance(it, 2)){
-		temp = it;
-		temp++;
-		if (!checkerror(*it, *temp)){
-			for (std::list<std::string>::iterator it2 = this->_bufData.begin(); it2 != this->_bufData.end(); std::advance(it2, 2)){
-				temp2 = it2;
-				temp2++;
-				if ((*it2) >= (*it)){
-					if ((*it2) > (*it) && it2 != this->_bufData.begin()){
-						std::advance(it2, -2);
-						std::advance(temp2, -2);
+	fill(this->_bufData, fdD, ",");
+	// fill(this->_bufInput, fdI, " | ");
+
+	tmp2 = this->_bufData.end()--;
+	while (std::getline(fdI, str)){
+		i++;
+		if (i == 1)
+			continue;
+		size = str.find(" | ");
+		if (size == std::string::npos){
+			std::cout << "Error: Bad syntaxe" << std::endl;
+			continue;
+		}
+		line1 = str.substr(0, size);
+		line2 = str.substr(size + 3);
+		if (!checkerror(line1, line2)){
+			for (std::map<std::string, float>::iterator it = this->_bufData.begin(); it != this->_bufData.end(); it++){
+				tmp2 = it;
+				if (it->first >= line1 || ++tmp2 == this->_bufData.end()){
+					tmp = it;
+					if (it->first > line1){
+						if (it == this->_bufData.begin()){
+							std::cout << "Error: Date is too old " << std::endl; 
+							break;
+						}
+						tmp--;
 					}
-					std::cout << (*it) << " => " << *temp << " = " << (conv(*temp) * conv(*temp2)) << std::endl;
+					// std::cout << conv(line2) << std::endl;
+					// std::cout << tmp->second << std::endl;
+					std::cout << line1 << " => " << conv(line2) << " = " << (conv(line2) * tmp->second) << std::endl;
 					break;
 				}
 			}
 		}
 	}
-	
 }
 

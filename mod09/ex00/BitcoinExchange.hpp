@@ -2,7 +2,7 @@
 # define BITCOINEXCHANGE_HPP
 
 # include <string>
-# include <list>
+# include <map>
 # include <iostream>
 # include <fstream>
 # include <algorithm>
@@ -14,8 +14,7 @@ class BitcoinExchange{
 	private:
 		std::string _data;
 		std::string _input;
-		std::list<std::string> _bufData;
-		std::list<std::string> _bufInput;
+		std::map<std::string, float> _bufData;
 	public:
 		BitcoinExchange();
 		BitcoinExchange(const std::string &data, const std::string &input);
